@@ -1,6 +1,8 @@
 // StandaloneAnalytics.cpp : This file contains the 'main' function. Program execution begins and ends there.
 //
 
+#define _SILENCE_CXX17_CODECVT_HEADER_DEPRECATION_WARNING
+
 #include <iostream>
 #include <fstream>
 #include <vector>
