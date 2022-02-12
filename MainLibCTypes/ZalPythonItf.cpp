@@ -61,7 +61,7 @@ namespace MainLibForPython {
         __declspec(dllexport) bool GenerateAllForms();
         __declspec(dllexport) void ReportProgress (int iPercentDone, bool bDone, int recordNumber, double dDuration);
         __declspec(dllexport) bool AddLexemeHashes();
-        __declspec(dllexport) long long llParseText(const wchar_t* szTextName, const wchar_t* szMetadata, const wchar_t* szText);
+        __declspec(dllexport) long long llParseText(const wchar_t* szTextName, const wchar_t* szMetadata, const wchar_t* szText, bool bIsProse);
     }
 
     static IDictionary* g_pDictionary = nullptr;
@@ -300,7 +300,7 @@ namespace MainLibForPython {
     //  Analytics
     //
 
-    long long llParseText(const wchar_t* szTextName, const wchar_t* szMetadata, const wchar_t* szText)
+    long long llParseText(const wchar_t* szTextName, const wchar_t* szMetadata, const wchar_t* szText, bool bIsProse)
     {
         ET_ReturnCode eRet = H_NO_ERROR;
 
@@ -321,7 +321,7 @@ namespace MainLibForPython {
         }
 
         long long llParsedTextId = 0;
-        eRet = g_pAnalytics->eParseText(szTextName, szMetadata, szText, llParsedTextId);
+        eRet = g_pAnalytics->eParseText(szTextName, szMetadata, szText, llParsedTextId, bIsProse);
         if (H_NO_ERROR != eRet)
         {
             llParsedTextId = -1;
