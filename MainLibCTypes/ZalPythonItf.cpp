@@ -14,7 +14,7 @@
 #include "IDictionary.h"
 #include "ILexeme.h"
 #include "IWordForm.h"
-#include "Gramhasher.h"
+#include "GramHasher.h"
 #include "IParser.h"
 #include "IAspectPair.h"
 #include "EString.h"
@@ -51,6 +51,7 @@ namespace MainLibForPython {
         wchar_t szGrammHash[MAX_SIZE] = { L'\0' };
     };
 
+#ifdef WIN32
     extern "C"
     {
         __declspec(dllexport) ET_ReturnCode GetDictionary(IDictionary*&);
@@ -63,10 +64,24 @@ namespace MainLibForPython {
         __declspec(dllexport) bool AddLexemeHashes();
         __declspec(dllexport) long long llParseText(const wchar_t* szTextName, const wchar_t* szMetadata, const wchar_t* szText, bool bIsProse);
     }
+#else
+    extern "C"
+    {
+        ET_ReturnCode GetDictionary(IDictionary*&);
+        bool Init(const wchar_t* szDbPath);
+        bool bParseWord(const wchar_t* szWord);
+        int iNumOfParses();
+        bool GetParsedWordForm(int iNum, StWordForm* pstParsedForm);
+        bool GenerateAllForms();
+        void ReportProgress(int iPercentDone, bool bDone, int recordNumber, double dDuration);
+        bool AddLexemeHashes();
+        long long llParseText(const wchar_t* szTextName, const wchar_t* szMetadata, const wchar_t* szText, bool bIsProse);
+    }
+#endif
 
     static IDictionary* g_pDictionary = nullptr;
-    static IParser* g_pParser = nullptr;
-    static ILexeme* g_pLexeme = nullptr;
+//    static IParser* g_pParser = nullptr;
+//    static ILexeme* g_pLexeme = nullptr;
     static IAnalytics* g_pAnalytics = nullptr;
 
     static vector<IWordForm *> vecWordForms;
@@ -75,7 +90,7 @@ namespace MainLibForPython {
     {
         ET_ReturnCode rc = GetDictionary(g_pDictionary);
 
-        if (nullptr == g_pDictionary)
+        if (rc != H_NO_ERROR || nullptr == g_pDictionary)
         {
             cout << L"Unable to intialize the dictionary." << endl;
             exit(-1);
@@ -227,15 +242,15 @@ namespace MainLibForPython {
 
     bool GetParsedWordForm(int iNum, StWordForm* pstParsedForm)
     {
-        if (iNum < 0 || iNum >= vecWordForms.size())
+        if (iNum < 0 || iNum >= (int)vecWordForms.size())
         {
             ERROR_LOG(L"Illegal parse index.");
             return false;
         }
 
-        auto num = vecWordForms.size();
-        auto koko = vecWordForms[iNum];
-        FillWordFormData(koko, pstParsedForm);
+//        auto num = vecWordForms.size();
+        auto wf = vecWordForms[iNum];
+        FillWordFormData(wf, pstParsedForm);
 
 //        cout << pstParsedForm->szWordForm;
 
@@ -291,6 +306,11 @@ namespace MainLibForPython {
 
         cout << endl << "****      ADDING LEXEME HASHES" << endl << endl;
         ET_ReturnCode eRet = g_pDictionary->ePopulateHashToDescriptorTable(nullptr, &ReportProgress);
+        if (eRet != H_NO_ERROR)
+        {
+            cout << "Failed to populate hash to descriptor table." << endl;
+            return false;
+        }
 
         return true;
     }
