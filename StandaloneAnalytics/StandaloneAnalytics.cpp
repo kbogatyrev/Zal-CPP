@@ -24,8 +24,10 @@ extern "C"
 
 int main()
 {
-    CEString sDbPath(L"C:/git-repos/Zal-Windows/ZalData/ZalData_06_07_2020_Pasternak.db3");
-    CEString sSourceTextPath(L"C:/git-repos/Zal-Windows/ZalData/Pasternak_05_2020.txt");
+    CEString sDbPath(L"/home/konstantin/zal/ZalData_demo.db3");
+//    CEString sDbPath(L"C:\\git-repos\\zal/ZalData_demo.db3");
+    CEString sSourceTextPath(L"/home/konstantin/zal/Pasternak_05_2020_UTF8.txt");
+//    CEString sSourceTextPath(L"C:\\git-repos\\zal/Pasternak_05_2020_UTF8.txt");
 
     IDictionary* pDictionary = nullptr;
     ET_ReturnCode rc = GetDictionary(pDictionary);
@@ -41,7 +43,7 @@ int main()
         ERROR_LOG(L"Unable to set DB path, exiting.");
         exit(-1);
     }
-
+ 
     IAnalytics* pAnalytics = nullptr;
     ET_ReturnCode eRet = pDictionary->eGetAnalytics(pAnalytics);
     if (eRet != H_NO_ERROR)
@@ -55,12 +57,14 @@ int main()
     long long llLastTextId = -1;
     int iCount = 0;
 
-    wstring wsPath((wchar_t*)sSourceTextPath);
-    ifstream Infile(wsPath);
+
+    string strPath(sSourceTextPath.stl_sToUtf8());
+    ifstream Infile(strPath.c_str());
     string strLine;
     while (getline(Infile, strLine))
     {
         CEString sLine(CEString::sFromUtf8(strLine));
+        sLine.TrimRight(L"\r ");
         if (sLine.bRegexMatch(L"^\\<(\\w+?)\\s+(.+?)\\/(\\w+)>"))
         {
             if (!sText.bIsEmpty())
@@ -78,7 +82,10 @@ int main()
                 sMetadata += L" | date = ";
                 sMetadata += sDate;
 
-                ET_ReturnCode eRet = pAnalytics->eParseText(sTitle, sMetadata, sText, llLastTextId);
+                MESSAGE_LOG(sMetadata);
+
+                bool bIsProse{false};
+                ET_ReturnCode eRet = pAnalytics->eParseText(sTitle, sMetadata, sText, llLastTextId, bIsProse);
                 sText.Erase();
                 if (eRet != H_NO_ERROR)
                 {
@@ -152,4 +159,6 @@ int main()
 
         sLastLine = sLine;
     }
+
+    delete pDictionary;
 }
