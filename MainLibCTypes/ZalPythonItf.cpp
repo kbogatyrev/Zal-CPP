@@ -193,6 +193,9 @@ namespace MainLibForPython {
             exit(-1);
         }
 
+        pParser->ClearResults();
+        vecWordForms.clear();
+
         eRet = pParser->eParseWord(szWord);
         if (eRet != H_NO_ERROR && eRet != H_FALSE)
         {
@@ -226,9 +229,8 @@ namespace MainLibForPython {
                     cout << "Word " << szWord << ": unable to get next word form data." << endl;
                     return false;
                 }
+                vecWordForms.push_back(pWf);
             }
-
-            vecWordForms.push_back(pWf);
         }
 
         return true;
