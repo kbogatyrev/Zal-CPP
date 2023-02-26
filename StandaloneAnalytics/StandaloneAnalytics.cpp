@@ -7,46 +7,62 @@
 #include <fstream>
 #include <vector>
 #include <string>
+#include <memory>
 
 #include "Logging.h"
 #include "EString.h"
 #include "Enums.h"
-#include "IDictionary.h"
-#include "IAnalytics.h"
+#include "MainLib.h"
+#include "Dictionary.h"
+#include "Analytics.h"
 
 using namespace Hlib;
 using namespace std;
 
-extern "C"
-{
-    ET_ReturnCode GetDictionary(Hlib::IDictionary*&);        // the only external function defined in MainLib
-}
+//extern "C"
+//{
+//    ET_ReturnCode GetDictionary(shared_ptr<Hlib::CDictionary>&);        // the only external function defined in MainLib
+//}
 
-int main()
+int main(int argc, char** argv)
 {
-    CEString sDbPath(L"/home/konstantin/zal/ZalData_demo.db3");
-//    CEString sDbPath(L"C:\\git-repos\\zal/ZalData_demo.db3");
-    CEString sSourceTextPath(L"/home/konstantin/zal/Pasternak_05_2020_UTF8.txt");
-//    CEString sSourceTextPath(L"C:\\git-repos\\zal/Pasternak_05_2020_UTF8.txt");
+    Singleton singleton;
 
-    IDictionary* pDictionary = nullptr;
-    ET_ReturnCode rc = GetDictionary(pDictionary);
-    if (nullptr == pDictionary)
+    CEString sDbPath;
+#ifdef WIN32
+    sDbPath = L"C:\\git-repos\\zal/ZalData_demo.db3";
+#else
+    sDbPath = L"/home/konstantin/zal/ZalData_demo.db3";
+#endif
+
+    if (argc < 2)
+    {
+        cout << "Usage: ZalAnalytics <input file path>" << endl;
+    }
+    
+    CEString sSourceTextPath = CEString::sFromUtf8(argv[1]);
+
+//    CEString sSourceTextPath(L"/home/konstantin/zal/Pasternak_05_2020_UTF8_TEST.txt");
+//    CEString sSourceTextPath(L"C:\\git-repos\\zal/Pasternak_05_2020_UTF8_TEST.txt");
+
+    shared_ptr<CDictionary> spDictionary;
+    ET_ReturnCode rc = singleton.GetDictionary(spDictionary);
+    if (rc != Hlib::H_NO_ERROR || nullptr == spDictionary)
     {
         ERROR_LOG(L"Unable to initialize dictionary, exiting.");
         exit(-1);
     }
 
-    rc = pDictionary->eSetDbPath(sDbPath);
+    rc = spDictionary->eSetDbPath(sDbPath);
     if (rc != H_NO_ERROR)
     {
         ERROR_LOG(L"Unable to set DB path, exiting.");
         exit(-1);
     }
  
-    IAnalytics* pAnalytics = nullptr;
-    ET_ReturnCode eRet = pDictionary->eGetAnalytics(pAnalytics);
-    if (eRet != H_NO_ERROR)
+    shared_ptr<CAnalytics> spAnalytics;
+    ET_ReturnCode eRet = spDictionary->eGetAnalytics(spAnalytics);
+    if (eRet != H_NO_ERROR || spAnalytics)
     {
         ERROR_LOG(L"Unable to get analytics object, exiting.");
         exit(-1);
@@ -85,7 +101,7 @@ int main()
                 MESSAGE_LOG(sMetadata);
 
                 bool bIsProse{false};
-                ET_ReturnCode eRet = pAnalytics->eParseText(sTitle, sMetadata, sText, llLastTextId, bIsProse);
+                ET_ReturnCode eRet = spAnalytics->eParseText(sTitle, sMetadata, sText, llLastTextId, bIsProse);
                 sText.Erase();
                 if (eRet != H_NO_ERROR)
                 {
@@ -159,6 +175,4 @@ int main()
 
         sLastLine = sLine;
     }
-
-    delete pDictionary;
 }
