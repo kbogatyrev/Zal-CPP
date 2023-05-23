@@ -53,6 +53,7 @@ add_library (ZalPythonItf SHARED)
 target_include_directories (ZalPythonItf PUBLIC
 	../../Zal-Core/MainLib
 	../../Zal-Core/HLib
+	../../Zal-Core/ThirdParty/Sqlite
 )
 
 target_sources (ZalPythonItf PRIVATE
@@ -64,17 +65,17 @@ target_link_directories (ZalPythonItf PRIVATE
 	../../Zal-Core/out/build/x64-debug
 )
 
-target_link_libraries (ZalPythonItf 
-	ZalMainLib)
+#target_link_libraries (ZalPythonItf)
+#	ZalMainLib)
 
-#if (CMAKE_BUILD_TYPE MATCHES "Debug")
-#	target_link_libraries(ZalPythonItf "../../../../../Zal-Core/out/build/x64-Debug/ZalMainLib")
+if (CMAKE_BUILD_TYPE MATCHES "Debug")
+	target_link_libraries(ZalPythonItf PUBLIC ../../../../../Zal-Core/out/build/x64-debug/ZalMainLib)
 #	add_custom_command(TARGET ZalPythonItf POST_BUILD
 #		COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:ZalPythonItf> ../../Zal-Python/PyZal
 #	)
-#else()
-#	target_link_libraries(ZalPythonItf "../../../../../Zal-Core/out/build/x64-Release/ZalMainLib")
+else()
+	target_link_libraries(ZalPythonItf "../../Zal-Core/out/build/x64-release/ZalMainLib")
 #	add_custom_command(TARGET ZalPythonItf POST_BUILD
 #		COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:ZalPythonItf> ../../Zal-Python/PyZal
 #	)
-#endif()
+endif()

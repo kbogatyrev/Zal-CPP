@@ -11,6 +11,7 @@
 #include <iomanip>
 
 #include "Logging.h"
+#include "Singleton.h"
 #include "Dictionary.h"
 #include "Lexeme.h"
 #include "Inflection.h"
@@ -90,7 +91,9 @@ namespace MainLibForPython {
 
     bool Init(const wchar_t* szDbPath)
     {
-        ET_ReturnCode rc = GetDictionary(g_spDictionary);
+        auto pSingleton = Singleton::pGetInstance();
+
+        ET_ReturnCode rc = pSingleton->eGetDictionary(g_spDictionary);
 
         if (rc != H_NO_ERROR || nullptr == g_spDictionary)
         {
@@ -136,7 +139,7 @@ namespace MainLibForPython {
                         ERROR_LOG(L"Illegal stress type.");
                         continue;
                     }
-                    eRet = pWf->eGetNextStressPos(iPos, eType);
+                    eRet = spWf->eGetNextStressPos(iPos, eType);
                 }
 
             } while (H_NO_ERROR == eRet);
@@ -155,8 +158,8 @@ namespace MainLibForPython {
 
     void FillWordFormData(shared_ptr<CWordForm> spWf, StWordForm* pstTarget) 
     {
-        pstTarget->llLexemeId = spWf->m_spLexeme->llLexemeId();
-        pstTarget->llInflectionId = spWf->m_spInflection->llInflectionId();
+        pstTarget->llLexemeId = spWf->spLexeme()->llLexemeId();
+        pstTarget->llInflectionId = spWf->spInflection()->llInflectionId();
         std::memcpy(pstTarget->szWordForm, spWf->sWordForm(), spWf->sWordForm().uiLength() * sizeof(wchar_t));
         std::memcpy(pstTarget->szStem, spWf->sStem(), spWf->sStem().uiLength() * sizeof(wchar_t));
         pstTarget->ePos = spWf->ePos();
